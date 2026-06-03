@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - email: string (required)
+    //   - role: string (required, 'admin' | 'input-only')
+    //   - displayName: string (optional)
+    //
+    // Collection: records
+    // Document ID: {recordId}
+    // Fields:
+    //   - nama: string (required)
+    //   - kelas: string (required)
+    //   - kategori: string (required, 'Terlambat' | 'Izin Keluar' | 'Izin Pulang' | 'Lainnya')
+    //   - jam: string (required, HH:mm)
+    //   - alasan: string (optional)
+    //   - timestamp: string (required, ISO 8601)
+    //   - createdBy: string (required, UID)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "seshhhhh40@gmail.com" && request.auth.token.email_verified == true) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == 'admin')
+      );
+    }
+
+    function isInputOnly() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == 'input-only';
+    }
+
+    function isValidRecord(data) {
+      return data.nama is string && data.nama.size() > 0 && data.nama.size() < 100 &&
+             data.kelas is string && data.kelas.size() > 0 && data.kelas.size() < 20 &&
+             data.kategori in ['Terlambat', 'Izin Keluar', 'Izin Pulang', 'Lainnya'] &&
+             data.jam is string && data.jam.matches("^\\d{2}:\\d{2}$") &&
+             data.timestamp is string && data.timestamp.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$") &&
+             data.createdBy == request.auth.uid;
+    }
+
+    function isValidUser(data) {
+      return data.email is string && data.email.size() > 0 &&
+             data.role in ['admin', 'input-only'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /records/{recordId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidRecord(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Collection: students (diimport via Excel)
+    // Fields: nama (string), kelas (string), createdAt (string)
+    match /students/{studentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

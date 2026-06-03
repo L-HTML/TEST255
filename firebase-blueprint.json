@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "PiketRecord": {
+      "title": "Piket Record",
+      "description": "Catatan kedisiplinan siswa oleh guru piket",
+      "type": "object",
+      "properties": {
+        "nama": {
+          "type": "string",
+          "description": "Nama lengkap siswa"
+        },
+        "kelas": {
+          "type": "string",
+          "description": "Kelas siswa"
+        },
+        "kategori": {
+          "type": "string",
+          "enum": ["Terlambat", "Izin Keluar", "Izin Pulang", "Lainnya"],
+          "description": "Kategori kedisiplinan"
+        },
+        "jam": {
+          "type": "string",
+          "description": "Jam kejadian (HH:mm)"
+        },
+        "alasan": {
+          "type": "string",
+          "description": "Alasan atau keterangan tambahan"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pencatatan"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID guru yang mencatat"
+        }
+      },
+      "required": ["nama", "kelas", "kategori", "jam", "timestamp", "createdBy"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Profil dan role pengguna",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "input-only"]
+        },
+        "displayName": {
+          "type": "string"
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/records/{recordId}": {
+      "schema": "PiketRecord",
+      "description": "Koleksi catatan piket harian"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Koleksi profil pengguna dan role"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    overscroll-behavior: none;
+    background-color: #0f172a; /* slate-900 — matches dark mode base */
+    height: 100%;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    overscroll-behavior: none;
+    min-height: 100%;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+.glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.glass-dark {
+  @apply bg-slate-900/80 backdrop-blur-md border border-white/10 shadow-xl;
+}
